@@ -14,6 +14,9 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -56,6 +59,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
@@ -327,13 +332,36 @@ fun CaludeApp() {
 @Composable private fun EmptyState(title: String, desc: String, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier = Modifier) { Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) { Icon(icon, null, Modifier.size(38.dp), tint = Muted); Text(title, fontSize = 20.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(top = 14.dp)); Text(desc, color = Muted, modifier = Modifier.padding(top = 6.dp), fontSize = 14.sp) } }
 
 @Composable private fun ModalNavigationDrawerContent(chats: List<Conversation>, select: (String) -> Unit, new: () -> Unit, navigate: (Page) -> Unit, delete: (String) -> Unit, close: () -> Unit) {
-    AlertDialog(onDismissRequest = close, title = { Text("Calude") }, text = { Column(Modifier.heightIn(max = 470.dp).verticalScroll(rememberScrollState())) {
-        Text("Nuevo chat  +", Modifier.fillMaxWidth().clickable { new() }.padding(vertical = 13.dp), fontWeight = FontWeight.Medium)
-        HorizontalDivider()
-        listOf(Page.PROJECTS to "Proyectos", Page.CODE to "Code", Page.ARTIFACTS to "Artefactos", Page.SETTINGS to "Configuración").forEach { (p, label) -> Text(label, Modifier.fillMaxWidth().clickable { navigate(p) }.padding(vertical = 11.dp)) }
-        HorizontalDivider(Modifier.padding(vertical = 5.dp))
-        chats.forEach { c -> Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { Text(c.title, Modifier.weight(1f).clickable { select(c.id) }.padding(vertical = 9.dp), maxLines = 1, overflow = TextOverflow.Ellipsis); IconButton(onClick = { delete(c.id) }) { Icon(Icons.Outlined.DeleteOutline, null, tint = Muted) } } }
-    } }, confirmButton = { TextButton(onClick = close) { Text("Cerrar") } })
+    Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+        Row(Modifier.fillMaxSize().background(Color.Black.copy(alpha = .34f))) {
+            AnimatedVisibility(visible = true, enter = slideInHorizontally(initialOffsetX = { -it }), exit = slideOutHorizontally(targetOffsetX = { -it })) {
+                Surface(Modifier.fillMaxHeight().fillMaxWidth(.91f), color = Paper, shape = RoundedCornerShape(topEnd = 26.dp, bottomEnd = 26.dp)) {
+                    Column(Modifier.fillMaxSize().padding(start = 28.dp, end = 20.dp, top = 30.dp, bottom = 18.dp)) {
+                        Text("Claude", fontFamily = ClaudeLikeSerif, fontSize = 34.sp, color = Ink, modifier = Modifier.padding(bottom = 28.dp))
+                        Text("Recientes", fontSize = 17.sp, color = Muted, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
+                        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 12.dp)) {
+                            items(chats.take(20)) { c ->
+                                Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable { select(c.id) }, verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Outlined.ChatBubbleOutline, null, tint = Color(0xFF62625D), modifier = Modifier.size(20.dp))
+                                    Text(c.title, Modifier.weight(1f).padding(start = 18.dp, end = 6.dp), fontSize = 16.sp, color = Ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    IconButton(onClick = { delete(c.id) }, modifier = Modifier.size(34.dp)) { Icon(Icons.Outlined.DeleteOutline, null, tint = Muted, modifier = Modifier.size(18.dp)) }
+                                }
+                            }
+                        }
+                        HorizontalDivider(color = Color(0xFFE3E2DE))
+                        Text("Más", fontSize = 16.sp, color = Muted, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 17.dp, bottom = 7.dp))
+                        Row(Modifier.fillMaxWidth().height(52.dp).clickable { navigate(Page.ARTIFACTS) }, verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Outlined.ChatBubbleOutline, null, tint = Ink); Text("Chats", Modifier.padding(start = 17.dp), fontSize = 16.sp, color = Ink) }
+                        Row(Modifier.fillMaxWidth().padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Surface(Modifier.size(48.dp).clip(CircleShape), color = Accent) { Box(contentAlignment = Alignment.Center) { Text("C", color = Color.White, fontSize = 18.sp) } }
+                            Spacer(Modifier.weight(1f))
+                            Button(onClick = new, colors = ButtonDefaults.buttonColors(containerColor = Ink), shape = RoundedCornerShape(28.dp), contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)) { Icon(Icons.Outlined.Add, null); Text("Nuevo chat", modifier = Modifier.padding(start = 7.dp)) }
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.fillMaxSize().clickable { close() })
+        }
+    }
 }
 
 @Composable private fun AddSheet(web: Boolean, setWeb: (Boolean) -> Unit, memory: Boolean, setMemory: (Boolean) -> Unit, files: () -> Unit, photos: () -> Unit, camera: () -> Unit, close: () -> Unit, project: () -> Unit) {
@@ -347,12 +375,56 @@ fun CaludeApp() {
 
 @Composable private fun AddOption(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, click: () -> Unit, modifier: Modifier = Modifier) { Column(modifier.clip(RoundedCornerShape(16.dp)).background(Color(0xFFF7F7F5)).clickable { click() }.padding(vertical = 14.dp, horizontal = 5.dp), horizontalAlignment = Alignment.CenterHorizontally) { Icon(icon, null, Modifier.size(27.dp)); Text(label, modifier = Modifier.padding(top = 7.dp), fontSize = 13.sp) } }
 
+private data class ModelOption(val id: String, val name: String, val contextLength: Int)
+
+private suspend fun fetchOpenRouterModels(): List<ModelOption> = withContext(Dispatchers.IO) {
+    val conn = (URL("https://openrouter.ai/api/v1/models").openConnection() as HttpURLConnection).apply { requestMethod = "GET"; connectTimeout = 15000; readTimeout = 25000 }
+    val status = conn.responseCode
+    val raw = (if (status in 200..299) conn.inputStream else conn.errorStream).bufferedReader().use { it.readText() }
+    conn.disconnect()
+    if (status !in 200..299) throw IllegalStateException("OpenRouter HTTP $status")
+    val data = JSONObject(raw).getJSONArray("data")
+    (0 until data.length()).map { i -> data.getJSONObject(i).let { ModelOption(it.optString("id"), it.optString("name", it.optString("id")), it.optInt("context_length")) } }.filter { it.id.isNotBlank() }.sortedBy { it.name.lowercase() }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable private fun ModelDialog(model: String, select: (String) -> Unit, close: () -> Unit) {
-    var custom by remember { mutableStateOf(model) }
-    AlertDialog(onDismissRequest = close, title = { Text("Selecciona un modelo") }, text = { Column {
-        listOf("anthropic/claude-sonnet-4", "anthropic/claude-3.7-sonnet", "openai/gpt-4o-mini", "google/gemini-2.5-flash").forEach { id -> Row(Modifier.fillMaxWidth().clickable { select(id); close() }.padding(vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text(id.substringAfterLast('/'), fontSize = 17.sp); Text(id, fontSize = 12.sp, color = Muted) }; if (id == model) Text("✓", color = Blue, fontSize = 20.sp) } }
-        HorizontalDivider(Modifier.padding(vertical = 8.dp)); OutlinedTextField(custom, { custom = it }, Modifier.fillMaxWidth(), label = { Text("Otro ID de OpenRouter") }, singleLine = true)
-    } }, confirmButton = { TextButton(onClick = { if (custom.isNotBlank()) select(custom.trim()); close() }) { Text("Usar modelo") } }, dismissButton = { TextButton(onClick = close) { Text("Cancelar") } })
+    var query by remember { mutableStateOf("") }
+    var models by remember { mutableStateOf<List<ModelOption>>(emptyList()) }
+    var loading by remember { mutableStateOf(true) }
+    var error by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    fun refresh() { scope.launch { loading = true; error = ""; try { models = fetchOpenRouterModels() } catch (e: Exception) { error = e.message ?: "No se pudo cargar el catálogo" }; loading = false } }
+    LaunchedEffect(Unit) { refresh() }
+    Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(Modifier.fillMaxWidth().fillMaxHeight(.86f), color = Paper, shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp, bottomStart = 26.dp, bottomEnd = 26.dp)) {
+            Column(Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp)) {
+                Box(Modifier.align(Alignment.CenterHorizontally).width(42.dp).height(5.dp).clip(CircleShape).background(Color(0xFFD6D5D1)))
+                Row(Modifier.fillMaxWidth().padding(top = 18.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Selecciona un modelo", Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, fontSize = 22.sp, fontWeight = FontWeight.Medium, color = Ink)
+                    Text("×", Modifier.clickable { close() }.padding(horizontal = 5.dp), fontSize = 28.sp, color = Muted)
+                }
+                OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth(), placeholder = { Text("Buscar modelos") }, leadingIcon = { Icon(Icons.Outlined.Search, null) }, trailingIcon = { TextButton(onClick = { refresh() }) { Text("Actualizar") } }, singleLine = true, shape = RoundedCornerShape(18.dp))
+                Text("Catálogo actualizado desde OpenRouter", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp, bottom = 6.dp))
+                when {
+                    loading -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Column(horizontalAlignment = Alignment.CenterHorizontally) { PaintSpinner(34.dp); Text("Cargando modelos", color = Muted, modifier = Modifier.padding(top = 12.dp)) } }
+                    error.isNotBlank() -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Text(error, color = Muted, textAlign = androidx.compose.ui.text.style.TextAlign.Center); TextButton(onClick = { refresh() }) { Text("Reintentar") } } }
+                    else -> {
+                        val filtered = models.filter { it.name.contains(query, true) || it.id.contains(query, true) }
+                        if (filtered.isEmpty()) Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Text("No hay modelos que coincidan", color = Muted, textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
+                        else LazyColumn(Modifier.weight(1f).fillMaxWidth().padding(top = 6.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
+                            items(filtered, key = { it.id }) { option ->
+                                Row(Modifier.fillMaxWidth().padding(vertical = 3.dp).clip(RoundedCornerShape(17.dp)).background(if (option.id == model) Color(0xFFECEBE7) else Color.Transparent).clickable { select(option.id); close() }.padding(horizontal = 13.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Column(Modifier.weight(1f)) { Text(option.name, fontSize = 16.sp, color = Ink, maxLines = 1, overflow = TextOverflow.Ellipsis); Text(option.id + if (option.contextLength > 0) " · ${option.contextLength / 1000}k contexto" else "", fontSize = 12.sp, color = Muted, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                                    if (option.id == model) Text("✓", color = Blue, fontSize = 21.sp, modifier = Modifier.padding(start = 8.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable private fun CreateProjectDialog(create: (String, String) -> Unit, close: () -> Unit) {
