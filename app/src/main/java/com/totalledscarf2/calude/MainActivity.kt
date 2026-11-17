@@ -398,10 +398,10 @@ private fun readAttachment(context: android.content.Context, uriString: String):
     val uri = Uri.parse(uriString)
     val mime = context.contentResolver.getType(uri).orEmpty()
     if (mime.startsWith("image/")) {
-        val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return ""
+        val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return@runCatching ""
         "data:$mime;base64," + android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
     } else {
-        val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return ""
+        val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return@runCatching ""
         if (mime.startsWith("text/") || mime.contains("json") || mime.contains("xml") || mime.contains("javascript")) bytes.toString(Charsets.UTF_8).take(200_000)
         else "Este tipo de archivo ($mime) no se pudo convertir a texto."
     }
