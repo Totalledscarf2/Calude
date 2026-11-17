@@ -57,6 +57,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -81,6 +82,7 @@ private val Card = Color.White
 private val Muted = Color(0xFF777773)
 private val Accent = Color(0xFFD97757)
 private val Blue = Color(0xFF3878C7)
+private val ClaudeLikeSerif = FontFamily(Font(R.font.lora_variable))
 
 data class ChatMessage(val role: String, val text: String, val time: Long = System.currentTimeMillis())
 data class Conversation(val id: String, var title: String, val messages: MutableList<ChatMessage> = mutableListOf(), var projectId: String? = null)
@@ -161,7 +163,16 @@ fun CaludeApp() {
             .onFailure { toast = "El reconocimiento de voz no está disponible" }
     }
 
-    MaterialTheme(colorScheme = lightColorScheme(primary = Accent, background = Paper, surface = Card, onSurface = Ink)) {
+    MaterialTheme(
+        colorScheme = lightColorScheme(primary = Accent, background = Paper, surface = Card, onSurface = Ink),
+        typography = Typography(
+            displayLarge = MaterialTheme.typography.displayLarge.copy(fontFamily = ClaudeLikeSerif),
+            displayMedium = MaterialTheme.typography.displayMedium.copy(fontFamily = ClaudeLikeSerif),
+            headlineLarge = MaterialTheme.typography.headlineLarge.copy(fontFamily = ClaudeLikeSerif),
+            headlineMedium = MaterialTheme.typography.headlineMedium.copy(fontFamily = ClaudeLikeSerif),
+            titleLarge = MaterialTheme.typography.titleLarge.copy(fontFamily = ClaudeLikeSerif)
+        )
+    ) {
         Scaffold(containerColor = Paper, snackbarHost = { SnackbarHost(remember { SnackbarHostState() }) }) { pad ->
             Column(Modifier.fillMaxSize().padding(pad)) {
                 if (page != Page.MEMORY) TopBar(page, onMenu = { drawer = true }, onSettings = { page = Page.SETTINGS }, onModel = { showModel = true }, model = model)
@@ -219,7 +230,7 @@ fun CaludeApp() {
     Row(Modifier.fillMaxWidth().height(60.dp).padding(horizontal = 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         IconButton(onClick = onMenu) { Icon(Icons.Outlined.Menu, null, tint = Ink) }
         if (page == Page.CHAT) TextButton(onClick = onModel) { Text(model.substringAfterLast('/'), color = Ink, fontWeight = FontWeight.Medium); Text("⌄", color = Muted, modifier = Modifier.padding(start = 5.dp)) }
-        else Text(when (page) { Page.PROJECTS -> "Proyectos"; Page.CODE -> "Code"; Page.ARTIFACTS -> "Artefactos"; Page.SETTINGS -> "Configuración"; else -> "Calude" }, fontSize = 20.sp, fontWeight = FontWeight.Medium)
+        else Text(when (page) { Page.PROJECTS -> "Proyectos"; Page.CODE -> "Code"; Page.ARTIFACTS -> "Artefactos"; Page.SETTINGS -> "Configuración"; else -> "Calude" }, fontSize = 20.sp, fontWeight = FontWeight.Medium, fontFamily = if (page == Page.SETTINGS) ClaudeLikeSerif else FontFamily.Default)
         IconButton(onClick = onSettings) { Icon(Icons.Outlined.Settings, null, tint = Ink) }
     }
 }
@@ -234,13 +245,13 @@ fun CaludeApp() {
 @Composable private fun ChatPage(chat: Conversation?, input: String, onInput: (String) -> Unit, busy: Boolean, attachment: Pair<String, String>?, removeAttachment: () -> Unit, onVoice: () -> Unit, onSend: (String) -> Unit, onAdd: () -> Unit, onModel: () -> Unit, onNew: () -> Unit, onSaveArtifact: (ChatMessage) -> Unit, modifier: Modifier = Modifier) {
     Column(modifier.fillMaxSize()) {
         if (chat == null || chat.messages.isEmpty()) {
-            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Text("¿Qué tienes en mente?", fontSize = 29.sp, fontWeight = FontWeight.Medium, color = Ink); Text("Pregunta, escribe o explora una idea.", color = Muted, modifier = Modifier.padding(top = 8.dp)) } }
+            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Text("¿Qué tienes en mente?", fontSize = 29.sp, fontWeight = FontWeight.Medium, fontFamily = ClaudeLikeSerif, color = Ink); Text("Pregunta, escribe o explora una idea.", color = Muted, modifier = Modifier.padding(top = 8.dp)) } }
         } else LazyColumn(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 18.dp), contentPadding = PaddingValues(top = 22.dp, bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
             items(chat.messages) { m ->
                 if (m.role == "user") Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { Text(m.text, Modifier.widthIn(max = 320.dp).clip(RoundedCornerShape(22.dp)).background(Color(0xFFEFEEEA)).padding(horizontal = 16.dp, vertical = 12.dp), fontSize = 17.sp, color = Ink) }
-                else Column(Modifier.fillMaxWidth()) { Text(m.text, fontSize = 17.sp, color = Ink, lineHeight = 26.sp); Text("Copiar   ·   Guardar en artefactos", Modifier.clickable { onSaveArtifact(m) }.padding(top = 9.dp), fontSize = 12.sp, color = Muted) }
+                else Column(Modifier.fillMaxWidth()) { Text(m.text, fontSize = 18.sp, color = Ink, lineHeight = 28.sp, fontFamily = ClaudeLikeSerif); Text("Copiar   ·   Guardar en artefactos", Modifier.clickable { onSaveArtifact(m) }.padding(top = 9.dp), fontSize = 12.sp, color = Muted) }
             }
-            if (busy) item { Row(verticalAlignment = Alignment.CenterVertically) { PaintSpinner(34.dp); Text("A darle vueltas", fontSize = 18.sp, color = Ink, modifier = Modifier.padding(start = 12.dp)) } }
+            if (busy) item { Row(verticalAlignment = Alignment.CenterVertically) { PaintSpinner(34.dp); Text("A darle vueltas", fontSize = 20.sp, fontFamily = ClaudeLikeSerif, color = Ink, modifier = Modifier.padding(start = 12.dp)) } }
         }
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp).clip(RoundedCornerShape(28.dp)).background(Card)) {
             if (attachment != null) Row(Modifier.fillMaxWidth().padding(start = 16.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Outlined.AttachFile, null, tint = Muted); Text(attachment.first, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, color = Muted); Text("×", Modifier.clickable { removeAttachment() }.padding(horizontal = 12.dp), fontSize = 22.sp) }
@@ -279,7 +290,7 @@ fun CaludeApp() {
 
 @Composable private fun CodePage(model: String, settings: () -> Unit, modifier: Modifier = Modifier) {
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        Icon(Icons.Outlined.Code, null, Modifier.size(46.dp), tint = Accent); Text("Trabaja con código", fontSize = 28.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(top = 14.dp)); Text("Pídele a Calude que escriba, explique y revise código en una conversación. Las respuestas con bloques de código se guardan en Artefactos.", color = Muted, fontSize = 16.sp, lineHeight = 24.sp, modifier = Modifier.padding(vertical = 14.dp)); Text("Modelo actual: ${model.substringAfterLast('/')}", color = Ink); OutlinedButton(onClick = settings, modifier = Modifier.padding(top = 18.dp)) { Text("Configurar conexión") }
+        Icon(Icons.Outlined.Code, null, Modifier.size(46.dp), tint = Accent); Text("Trabaja con código", fontSize = 28.sp, fontWeight = FontWeight.Medium, fontFamily = ClaudeLikeSerif, modifier = Modifier.padding(top = 14.dp)); Text("Pídele a Calude que escriba, explique y revise código en una conversación. Las respuestas con bloques de código se guardan en Artefactos.", color = Muted, fontSize = 16.sp, lineHeight = 24.sp, modifier = Modifier.padding(vertical = 14.dp)); Text("Modelo actual: ${model.substringAfterLast('/')}", color = Ink); OutlinedButton(onClick = settings, modifier = Modifier.padding(top = 18.dp)) { Text("Configurar conexión") }
     }
 }
 
@@ -305,7 +316,7 @@ fun CaludeApp() {
 
 @Composable private fun MemoryPage(memories: List<Memory>, edit: (Memory) -> Unit, delete: (Memory) -> Unit, back: () -> Unit, modifier: Modifier = Modifier) {
     Column(modifier.fillMaxSize()) {
-        Row(Modifier.fillMaxWidth().height(58.dp).padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) { Text("‹", Modifier.clickable { back() }.padding(horizontal = 12.dp), fontSize = 34.sp); Text("Archivos de memoria", fontSize = 21.sp, fontWeight = FontWeight.Medium) }
+        Row(Modifier.fillMaxWidth().height(58.dp).padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) { Text("‹", Modifier.clickable { back() }.padding(horizontal = 12.dp), fontSize = 34.sp); Text("Archivos de memoria", fontSize = 21.sp, fontWeight = FontWeight.Medium, fontFamily = ClaudeLikeSerif) }
         if (memories.isEmpty()) EmptyState("Aún no hay recuerdos guardados", "Al conversar, Calude puede guardar preferencias y datos que quieras reutilizar.", Icons.Outlined.AutoAwesome, Modifier.weight(1f))
         else LazyColumn(Modifier.weight(1f).padding(horizontal = 18.dp), contentPadding = PaddingValues(vertical = 12.dp)) {
             memories.groupBy { it.group }.forEach { (group, items) -> item { Text(group, color = Muted, fontSize = 15.sp, modifier = Modifier.padding(start = 10.dp, top = 15.dp, bottom = 8.dp)) }; items(items) { m -> Row(Modifier.fillMaxWidth().padding(bottom = 8.dp).clip(RoundedCornerShape(18.dp)).background(Card).clickable { edit(m) }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text(m.title, fontSize = 18.sp); Text("Última actualización: ${date(m.updated)}", color = Muted, modifier = Modifier.padding(top = 4.dp)); Text(m.detail, color = Muted, maxLines = 2, overflow = TextOverflow.Ellipsis, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp)) }; IconButton(onClick = { delete(m) }) { Icon(Icons.Outlined.DeleteOutline, null, tint = Muted) } } } }

@@ -13,6 +13,7 @@ Cliente Android nativo de chat con OpenRouter, búsqueda web Tavily y memoria lo
 - Memoria local editable, con extracción automática de preferencias expresadas explícitamente.
 - Artefactos guardados localmente y controles de privacidad en el dispositivo.
 - Interfaz adaptable con selector de modelo y animación de carga original.
+- Tipografía serif Lora para las respuestas y algunos encabezados; se incluye su licencia SIL Open Font License.
 
 La memoria se procesa localmente con reglas simples; no es el sistema propietario de memoria de Claude. PDF y otros formatos binarios que no sean imágenes se pueden seleccionar, pero su contenido no se extrae en esta versión.
 
