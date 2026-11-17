@@ -327,14 +327,14 @@ fun CaludeApp() {
 
 @Composable private fun AddSheet(web: Boolean, setWeb: (Boolean) -> Unit, memory: Boolean, setMemory: (Boolean) -> Unit, files: () -> Unit, photos: () -> Unit, camera: () -> Unit, close: () -> Unit, project: () -> Unit) {
     AlertDialog(onDismissRequest = close, title = { Text("Agregar al chat") }, text = { Column {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { AddOption("Cámara", Icons.Outlined.PhotoCamera, camera); AddOption("Fotos", Icons.Outlined.Image, photos); AddOption("Archivos", Icons.Outlined.AttachFile, files) }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) { AddOption("Cámara", Icons.Outlined.PhotoCamera, camera, Modifier.weight(1f)); AddOption("Fotos", Icons.Outlined.Image, photos, Modifier.weight(1f)); AddOption("Archivos", Icons.Outlined.AttachFile, files, Modifier.weight(1f)) }
         Row(Modifier.fillMaxWidth(), Modifier.padding(top = 12.dp).clip(RoundedCornerShape(14.dp)).clickable { project() }.background(Color(0xFFF7F7F5)).padding(13.dp), verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Outlined.Archive, null); Text("Agregar al proyecto", Modifier.padding(start = 12.dp)) }
         SettingToggle("Búsqueda web", web, setWeb)
         SettingToggle("Memoria", memory, setMemory)
     } }, confirmButton = { TextButton(onClick = close) { Text("Listo") } })
 }
 
-@Composable private fun AddOption(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, click: () -> Unit) { Column(Modifier.weight(1f).padding(horizontal = 2.dp).clip(RoundedCornerShape(16.dp)).background(Color(0xFFF7F7F5)).clickable { click() }.padding(vertical = 14.dp, horizontal = 5.dp), horizontalAlignment = Alignment.CenterHorizontally) { Icon(icon, null, Modifier.size(27.dp)); Text(label, modifier = Modifier.padding(top = 7.dp), fontSize = 13.sp) } }
+@Composable private fun AddOption(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, click: () -> Unit, modifier: Modifier = Modifier) { Column(modifier.clip(RoundedCornerShape(16.dp)).background(Color(0xFFF7F7F5)).clickable { click() }.padding(vertical = 14.dp, horizontal = 5.dp), horizontalAlignment = Alignment.CenterHorizontally) { Icon(icon, null, Modifier.size(27.dp)); Text(label, modifier = Modifier.padding(top = 7.dp), fontSize = 13.sp) } }
 
 @Composable private fun ModelDialog(model: String, select: (String) -> Unit, close: () -> Unit) {
     var custom by remember { mutableStateOf(model) }
